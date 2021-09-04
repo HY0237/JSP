@@ -9,8 +9,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-@WebServlet("/notice-reg")
-public class NoticeReg extends HttpServlet {
+@WebServlet("/add2")
+public class Add2 extends HttpServlet {
 
 	
 	@Override
@@ -23,11 +23,18 @@ public class NoticeReg extends HttpServlet {
 	    PrintWriter out = resp.getWriter();
 	    
 	    
-	    String title = req.getParameter("title");
-	    String content = req.getParameter("content");
+	    String[] num_ = req.getParameterValues("num");
 	    
-	    out.println(title);
-	    out.println(content);
+	    int result = 0;
+	    
+	    for(int i = 0; i< num_.length; i++) {
+	    	int num = Integer.parseInt(num_[i]);
+	    	result += num;
+	    }
+
+
+	    resp.getWriter().printf("result is %d\n", result);
+	 
 	   
 	    
 	}
