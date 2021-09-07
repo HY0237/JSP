@@ -3,6 +3,9 @@ package com.newlecture.web;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -19,73 +22,49 @@ public class Calc3 extends HttpServlet {
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException
 	{
-		ServletContext application = req.getServletContext();
-		HttpSession session  = req.getSession();
+		
 		Cookie[] cookies = req.getCookies();
+			    
+	    String value = req.getParameter("value");
+	    String operator = req.getParameter("operator");
+	    String dot = req.getParameter("dot");
+	    
+	    String exp = "";
 		
-		resp.setCharacterEncoding("UTF-8");
-		resp.setContentType("text/html; charset=UTF-8");
-		
-		
-	    PrintWriter out = resp.getWriter();
-	    
-	    
-	    String v_ = req.getParameter("v");
-	    String op = req.getParameter("operator");
-	    
-	    
-	    int v = 0;
-	    if(!v_.equals(""))  v = Integer.parseInt(v_);
-	    
-	    if(op.equals("=")) {
-	    	int result = 0;
-	    	
-	    	//int x = (Integer)application.getAttribute("value");
-	    	//int x = (Integer)session.getAttribute("value");
-	    	int x = 0;
-	    	String operator ="";
-	    	
-	    	for(Cookie c : cookies) {
+		if(cookies != null) {
+			for(Cookie c : cookies) {
 
-	    		if(c.getName().equals("value")) {
-	    			x = Integer.parseInt(c.getValue());
+	    		if(c.getName().equals("exp")) {
+	    			exp = c.getValue();
 	    			break;
 	    		}
 	    	}
-	    	for(Cookie c : cookies) {
-
-	    		if(c.getName().equals("op")) {
-	    			operator = c.getValue();
-	    			break;
-	    		}
-	    	}
-	    	int y = v;
-	    	//String operator = (String)application.getAttribute("op");
-	    	//String operator = (String)session.getAttribute("op");
-	    	
-	    	if(operator.equals("+"))
-		    	result = x + y;
-		    else
-		    	result = x - y;
-	    	resp.getWriter().printf("result is %d\n", result);
+		}
+		if(operator != null && operator.equals("=")) {
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName("graal.js");
+			try {
+				exp = String.valueOf(engine.eval(exp));
+			} catch (ScriptException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}else if(operator != null && operator.equals("C")) {
+			exp = "";
+		}else {
+			exp += (value == null)?"":value;
+			exp += (operator == null)?"":operator;
+			exp += (dot == null)?"":dot;
+			
+		}
+		
 	    
-	    }else {
-		    //application.setAttribute("value", v);
-		    //application.setAttribute("op", op);
-	    	//session.setAttribute("value", v);
-	    	//session.setAttribute("op", op);
+	    Cookie expCookie = new Cookie("exp", exp);
+	    if(operator != null && operator.equals("C"))
+	    	expCookie.setMaxAge(0);
+	    expCookie.setPath("/");
+	    resp.addCookie(expCookie);
+	    resp.sendRedirect("calcpage");
 	    	
-	    	Cookie valueCookie = new Cookie("value", String.valueOf(v));
-	    	Cookie opCookie = new Cookie("op", op);
-	    	valueCookie.setPath("/calc2");
-	    	valueCookie.setMaxAge(24*60*60);
-	    	opCookie.setPath("/calc2");
-	    	resp.addCookie(valueCookie);
-	    	resp.addCookie(opCookie);
-	    	
-	    	resp.sendRedirect("calc2.html");
-	    	
-	    }
 	    
 	 
 	   
