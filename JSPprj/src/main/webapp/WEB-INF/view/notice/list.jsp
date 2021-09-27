@@ -1,24 +1,11 @@
-<%@page import="java.sql.ResultSet"%>
-<%@page import="java.sql.Statement"%>
-<%@page import="java.sql.DriverManager"%>
-<%@page import="java.sql.Connection"%>
+
+<%@page import="com.newlecture.web.entity.Notice"%>
+<%@page import="java.util.List"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
-    
-    
-<%
-String url = "jdbc:oracle:thin:@localhost:1521/xepdb1";
-String sql = "SELECT * FROM NOTICE";
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
-
-Class.forName("oracle.jdbc.driver.OracleDriver");
-Connection con = DriverManager.getConnection(url,"newlec", "1234");
-Statement st = con.createStatement();
-ResultSet rs = st.executeQuery(sql);
-
-
-
-%>
 <!DOCTYPE html>
 <html>
 
@@ -192,19 +179,28 @@ ResultSet rs = st.executeQuery(sql);
 					</thead>
 					<tbody>
 					
-					<%while(rs.next()){%>
-							
+				
+					<%-- <% 
+					List<Notice> list = (List<Notice>)request.getAttribute("list");
+					
+					for(Notice n : list){ 
+						pageContext.setAttribute("n", n); 
+						
+					%>   --%>
+	
+					<c:forEach var = "n" items="${list}" >
 					<tr>
-						<td><%=rs.getInt("ID") %></td>
-						<td class="title indent text-align-left"><a href="detail?id=<%=rs.getInt("ID")%>"><%=rs.getString("TITLE") %></a></td>
-						<td><%=rs.getString("WRITER_ID") %></td>
-						<td>
-							<%=rs.getDate("REGDATE") %>	
-						</td>
-						<td><%=rs.getInt("HIT") %>	</td>
+						<td>${n.id}</td>
+						<td class="title indent text-align-left"><a href="detail?id=${n.id}">${n.title}</a></td>
+						<td>${n.writerId}</td>
+						<td><fmt:formatDate pattern="yyyy-MM-dd" value="${n.regdate}"/></td> 
+						<td>${n.hit}</td>
 					</tr>
 					
-					<%  } %>
+					</c:forEach>
+					
+					
+
 							
 				
 					
@@ -220,19 +216,34 @@ ResultSet rs = st.executeQuery(sql);
 			<div class="margin-top align-center pager">	
 		
 	<div>
+	
+	<c:set var="page" value="${param.p == null?1:param.p}"/>
+	<c:set var="startNum" value="${page-(page-1)%5}" />
+	<c:set var="lastNum" value="23" />
+	
 		
-		
-		<span class="btn btn-prev" onclick="alert('이전 페이지가 없습니다.');">이전</span>
+		<c:if test="${startNum > 1}">
+			<a href="?p=${startNum-1}&t=&q=" class="btn btn-next">이전</a>
+		</c:if>
+		<c:if test="${startNum <= 1}">
+			<span class="btn btn-prev" onclick="alert('이전 페이지가 없습니다.');">이전</span>
+		</c:if>
 		
 	</div>
+	
 	<ul class="-list- center">
-		<li><a class="-text- orange bold" href="?p=1&t=&q=" >1</a></li>
+		<c:forEach var="i" begin="0" end="4">
+		<li><a class="-text- orange bold" href="?p=${startNum+i}&t=&q=" >${startNum+i}</a></li>
+		</c:forEach>
 				
 	</ul>
 	<div>
-		
-		
-			<span class="btn btn-next" onclick="alert('다음 페이지가 없습니다.');">다음</span>
+			<c:if test="${startNum+5 < lastNum}">
+				<a href="?p=${startNum+5}&t=&q="class="btn btn-next">다음</a>
+			</c:if>
+			<c:if test="${startNum+5 >= lastNum}">
+				<span class="btn btn-next" onclick="alert('다음 페이지가 없습니다.');">다음</span>
+			</c:if>
 		
 	</div>
 	
@@ -280,9 +291,3 @@ ResultSet rs = st.executeQuery(sql);
     </body>
     
     </html>
-    
-    <%
-     rs.close();
-	st.close();
-	con.close(); 
-	%>
